@@ -1,19 +1,22 @@
 const express = require('express');
 const cors = require('cors');
 
+require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 const products = [
   {
-    id: 1,
+    id: "PRODUCT_1",
     name: 'Product 1',
     price: 100
   },
   {
-    id: 2,
+    id: "PRODUCT_2",
     name: 'Product 2',
     price: 150
   },
   {
-    id: 3,
+    id: "PRODUCT_3",
     name: 'Product 3',
     price: 300
   },
@@ -27,10 +30,28 @@ app.get('/products', (req, res) => {
   res.json({ success: true, data: products });
 });
 
-app.post('/checkout', (req, res) => {
+app.post('/checkout', async (req, res) => {
   const order = req.body;
-  console.log("🚀 ~ file: app.js:34 ~ app.post ~ order:", order)
-  res.json({ success: true, message: 'Moving to payment' });
+  const line_items = order.map(o => {
+    const product = products.find(p => p.id === o.id);
+    return ({
+      quantity: o.qty,
+      price_data: {
+        currency: 'usd',
+        product_data: {
+          name: product.name
+        },
+        unit_amount: product.price * 100
+      },
+    })
+  });
+  const session = await stripe.checkout.sessions.create({
+    line_items,
+    mode: 'payment',
+    success_url: `${process.env.REACT_APP_URL}/success`,
+    cancel_url: `${process.env.REACT_APP_URL}/cancel`,
+  });
+  res.json({ success: true, message: 'Moving to payment', url: session?.url });
 })
 
 const PORT = process.env.PORT || 6969;

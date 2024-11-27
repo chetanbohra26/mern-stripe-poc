@@ -75,7 +75,10 @@ function App() {
       return;
     }
 
-    console.log("🚀 ~ file: App.js:60 ~ checkout ~ data:", data);
+    if (data.url) {
+      console.log('redirecting....', data.url);
+      window.location.href = data.url;
+    }
   }
 
   return (
