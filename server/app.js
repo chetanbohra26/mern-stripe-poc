@@ -48,8 +48,8 @@ app.post('/checkout', async (req, res) => {
   const session = await stripe.checkout.sessions.create({
     line_items,
     mode: 'payment',
-    success_url: `${process.env.REACT_APP_URL}/success`,
-    cancel_url: `${process.env.REACT_APP_URL}/cancel`,
+    success_url: `${process.env.REACT_APP_URL}/success?sessionId={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.REACT_APP_URL}/cancel?sessionId={CHECKOUT_SESSION_ID}`,
   });
   res.json({ success: true, message: 'Moving to payment', url: session?.url });
 })
