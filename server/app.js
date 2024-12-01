@@ -30,7 +30,9 @@ app.get('/products', (req, res) => {
   res.json({ success: true, data: products });
 });
 
-app.post('/checkout', async (req, res) => {
+
+// Payment flow: send Stripe checkout page URL to FE
+app.post('/get-checkout-url', async (req, res) => {
   const order = req.body;
   const line_items = order.map(o => {
     const product = products.find(p => p.id === o.id);
@@ -45,13 +47,14 @@ app.post('/checkout', async (req, res) => {
       },
     })
   });
+
   const session = await stripe.checkout.sessions.create({
     line_items,
     mode: 'payment',
     success_url: `${process.env.REACT_APP_URL}/success?sessionId={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.REACT_APP_URL}/cancel?sessionId={CHECKOUT_SESSION_ID}`,
   });
-  res.json({ success: true, message: 'Moving to payment', url: session?.url });
+  res.json({ success: true, message: 'Session initiated', url: session?.url });
 })
 
 const PORT = process.env.PORT || 6969;

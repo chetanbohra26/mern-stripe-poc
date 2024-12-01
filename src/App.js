@@ -60,7 +60,7 @@ function App() {
 
   const checkout = async (event) => {
     event.preventDefault();
-    const res = await fetch(`${BASE_URL}/checkout`, {
+    const res = await fetch(`${BASE_URL}/get-checkout-url`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -146,7 +146,7 @@ function App() {
             style={{ padding: 10, margin: 10 }}
             onClick={checkout}
           >
-            Checkout
+            Stripe checkout
           </button>
         </div> : null
       }
