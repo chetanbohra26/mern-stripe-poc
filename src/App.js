@@ -58,7 +58,7 @@ function App() {
     }
   }
 
-  const checkout = async (event) => {
+  const checkoutStripe = async (event) => {
     event.preventDefault();
     const res = await fetch(`${BASE_URL}/get-checkout-url`, {
       method: 'POST',
@@ -79,6 +79,26 @@ function App() {
       console.log('redirecting....', data.url);
       window.location.href = data.url;
     }
+  }
+
+  const checkoutPaymentIntent = async (event) => {
+    event.preventDefault();
+    const res = await fetch(`${BASE_URL}/create-payment-intent`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ cart, paymentMethodType: 'card' })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.log('Error:', data);
+      return;
+    }
+
+    console.log(data);
   }
 
   return (
@@ -141,12 +161,22 @@ function App() {
         </div> : null
       }
       {
-        cart.length ? <div style={{ padding: 10, margin: 10, display: 'flex', justifyContent: 'center' }}>
+        cart.length ? <div style={{ margin: 10, display: 'flex', justifyContent: 'center' }}>
           <button
-            style={{ padding: 10, margin: 10 }}
-            onClick={checkout}
+            style={{ padding: 10 }}
+            onClick={checkoutStripe}
           >
             Stripe checkout
+          </button>
+        </div> : null
+      }
+      {
+        cart.length ? <div style={{ margin: 10, display: 'flex', justifyContent: 'center' }}>
+          <button
+            style={{ padding: 10 }}
+            onClick={checkoutPaymentIntent}
+          >
+            Stripe payment intent
           </button>
         </div> : null
       }

@@ -55,6 +55,48 @@ app.post('/get-checkout-url', async (req, res) => {
     cancel_url: `${process.env.REACT_APP_URL}/cancel?sessionId={CHECKOUT_SESSION_ID}`,
   });
   res.json({ success: true, message: 'Session initiated', url: session?.url });
+});
+
+// Payment Flow: Stripe Payment Intent 
+app.post('/create-payment-intent', async (req, res) => {
+  const { paymentMethodType } = req.body;
+  if (!paymentMethodType || paymentMethodType.length === 0)
+    return res.status(400).json({ success: false, message: 'Invalid paymentMethodType' })
+
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: 1500,
+    currency: 'usd',
+    payment_method_types: [paymentMethodType],
+  });
+
+  res.json({ success: true, message: 'Intent created', clientSecret: paymentIntent.client_secret })
+});
+
+// webhook
+app.post('/webhook', express.json({ type: 'application/json' }), (req, res) => {
+  const event = req.body;
+  switch (event.type) {
+    case 'payment_intent.created':
+      const paymentIntentCreated = event.data.object;
+      console.log("🚀 ~ file: app.js:100 ~ app.post ~ paymentIntentCreated:", paymentIntentCreated)
+      // Then define and call a method to handle the successful payment intent.
+      break;
+    case 'payment_intent.succeeded':
+      const paymentIntent = event.data.object;
+      console.log("🚀 ~ file: app.js:102 ~ app.post ~ paymentIntent:", paymentIntent)
+      // Then define and call a method to handle the successful payment intent.
+      break;
+    case 'payment_method.attached':
+      const paymentMethod = event.data.object;
+      console.log("🚀 ~ file: app.js:103 ~ app.post ~ paymentMethod:", paymentMethod)
+      // Then define and call a method to handle the successful attachment of a PaymentMethod.
+      break;
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  // Return a response to acknowledge receipt of the event
+  res.json({ received: true });
 })
 
 const PORT = process.env.PORT || 6969;
