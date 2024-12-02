@@ -99,7 +99,7 @@ app.post('/webhook', express.json({ type: 'application/json' }), (req, res) => {
   res.json({ received: true });
 })
 
-const PORT = process.env.PORT || 6969;
+const PORT = process.env.BE_PORT || 6969;
 app.listen(PORT, (err) => {
   if (err) throw err;
   console.log(`Listening on port ${PORT}`)
