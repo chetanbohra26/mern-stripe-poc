@@ -1,6 +1,11 @@
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 import { useMemo, useState } from "react";
+import CardCheckout from "./components/cardCheckout";
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL;
+const STRIPE_PUBLIC_KEY = process.env.REACT_APP_STRIPE_PUBLIC_KEY;
+const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -81,14 +86,18 @@ function App() {
     }
   }
 
-  const checkoutPaymentIntent = async (event) => {
-    event.preventDefault();
+  const checkoutPaymentIntent = async (paymentMethod) => {
+    const cardId = paymentMethod?.id;
+    if (!cardId) return console.error('No payment method');
     const res = await fetch(`${BASE_URL}/create-payment-intent`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ cart, paymentMethodType: 'card' })
+      body: JSON.stringify({
+        cart, paymentMethodType: 'card',
+        paymentMethod: cardId,
+      })
     });
 
     const data = await res.json();
@@ -171,14 +180,20 @@ function App() {
         </div> : null
       }
       {
-        cart.length ? <div style={{ margin: 10, display: 'flex', justifyContent: 'center' }}>
-          <button
-            style={{ padding: 10 }}
-            onClick={checkoutPaymentIntent}
+        cart.length
+          ? <div
+            style={{
+              margin: 10,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
+            }}
           >
-            Stripe payment intent
-          </button>
-        </div> : null
+            <Elements stripe={stripePromise}>
+              <CardCheckout onSubmit={checkoutPaymentIntent} />
+            </Elements>
+          </div>
+          : null
       }
     </div>
   );

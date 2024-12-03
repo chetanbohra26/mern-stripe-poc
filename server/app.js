@@ -57,9 +57,19 @@ app.post('/get-checkout-url', async (req, res) => {
   res.json({ success: true, message: 'Session initiated', url: session?.url });
 });
 
+// check session status
+app.get('/session-status', async (req, res) => {
+  const session = await stripe.checkout.sessions.retrieve(req.query.session_id);
+
+  res.send({
+    status: session.status,
+    customer_email: session.customer_details.email
+  });
+});
+
 // Payment Flow: Stripe Payment Intent 
 app.post('/create-payment-intent', async (req, res) => {
-  const { paymentMethodType } = req.body;
+  const { paymentMethodType, paymentMethod } = req.body;
   if (!paymentMethodType || paymentMethodType.length === 0)
     return res.status(400).json({ success: false, message: 'Invalid paymentMethodType' })
 
@@ -67,6 +77,8 @@ app.post('/create-payment-intent', async (req, res) => {
     amount: 1500,
     currency: 'usd',
     payment_method_types: [paymentMethodType],
+    confirm: true,
+    payment_method: paymentMethod,
   });
 
   res.json({ success: true, message: 'Intent created', clientSecret: paymentIntent.client_secret })
