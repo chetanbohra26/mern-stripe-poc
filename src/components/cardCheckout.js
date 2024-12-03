@@ -37,7 +37,7 @@ const CardCheckout = (props) => {
     >
       <CardElement />
       <button
-        style={{ alignSelf: 'left', padding: 10 }}
+        style={{ alignSelf: 'left', padding: 10, marginTop: 10 }}
         type="submit"
         disabled={!stripe}
       >
