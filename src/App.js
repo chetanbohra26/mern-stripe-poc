@@ -86,30 +86,6 @@ function App() {
     }
   }
 
-  const checkoutPaymentIntent = async (paymentMethod) => {
-    const cardId = paymentMethod?.id;
-    if (!cardId) return console.error('No payment method');
-    const res = await fetch(`${BASE_URL}/create-payment-intent`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        cart, paymentMethodType: 'card',
-        paymentMethod: cardId,
-      })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.log('Error:', data);
-      return;
-    }
-
-    console.log(data);
-  }
-
   return (
     <div style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <button
@@ -189,8 +165,8 @@ function App() {
               justifyContent: 'center'
             }}
           >
-            <Elements stripe={stripePromise}>
-              <CardCheckout onSubmit={checkoutPaymentIntent} />
+            <Elements options={{ loader: 'auto', mode: 'payment', currency: 'usd', amount: 1500 }} stripe={stripePromise} >
+              <CardCheckout />
             </Elements>
           </div>
           : null
