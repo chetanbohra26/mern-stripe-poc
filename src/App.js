@@ -1,15 +1,21 @@
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CardCheckout from "./components/cardCheckout";
 
 const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 const STRIPE_PUBLIC_KEY = process.env.REACT_APP_STRIPE_PUBLIC_KEY;
-const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 function App() {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
+  const [stripe, setStripe] = useState();
+
+  useEffect(() => {
+    loadStripe(STRIPE_PUBLIC_KEY).then(stripe => {
+      setStripe(stripe);
+    })
+  }, [])
 
   const productMap = useMemo(() => {
     const obj = {};
@@ -165,7 +171,15 @@ function App() {
               justifyContent: 'center'
             }}
           >
-            <Elements options={{ loader: 'auto', mode: 'payment', currency: 'usd', amount: 1500 }} stripe={stripePromise} >
+            <Elements
+              options={{
+                loader: 'auto',
+                mode: 'payment',
+                currency: 'usd',
+                amount: 1500
+              }}
+              stripe={stripe}
+            >
               <CardCheckout />
             </Elements>
           </div>
