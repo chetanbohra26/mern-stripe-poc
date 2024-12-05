@@ -67,18 +67,14 @@ app.get('/session-status', async (req, res) => {
   });
 });
 
-// Payment Flow: Stripe Payment Intent 
 app.post('/create-payment-intent', async (req, res) => {
-  const { paymentMethodType, paymentMethod } = req.body;
-  if (!paymentMethodType || paymentMethodType.length === 0)
-    return res.status(400).json({ success: false, message: 'Invalid paymentMethodType' })
+  const amount = 1500;
+  const currency = 'usd';
 
   const paymentIntent = await stripe.paymentIntents.create({
-    amount: 1500,
-    currency: 'usd',
-    payment_method_types: [paymentMethodType],
-    confirm: true,
-    payment_method: paymentMethod,
+    amount,
+    currency,
+    automatic_payment_methods: { enabled: true },
   });
 
   res.json({ success: true, message: 'Intent created', clientSecret: paymentIntent.client_secret })

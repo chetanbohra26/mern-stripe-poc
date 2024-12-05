@@ -1,29 +1,50 @@
-import { CardElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
+import { useEffect, useState } from "react";
+
+const BASE_URL = process.env.REACT_APP_BACKEND_URL;
 
 const CardCheckout = (props) => {
   const stripe = useStripe();
   const elements = useElements();
+  const [clientSecret, setClientSecret] = useState();
+
+  useEffect(() => {
+    let response;
+    fetch(`${BASE_URL}/create-payment-intent`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+    })
+      .then(res => {
+        response = res;
+        return res.json()
+      })
+      .then(data => {
+        if (!response.ok) return;
+        const secret = data?.clientSecret;
+
+        if (secret) setClientSecret(secret)
+      });
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    console.log('submit action');
     console.log('stripe', stripe);
     console.log('elements', elements);
 
-    if (!stripe || !elements) {
-      return;
-    }
-
-    const { paymentMethod, error } = await stripe.createPaymentMethod({
-      type: 'card',
-      card: elements.getElement(CardElement),
+    elements.submit();
+    const result = await stripe.confirmPayment({
+      elements,
+      clientSecret,
+      confirmParams: {
+        return_url: 'http://localhost:3001/redirect'
+      },
+      redirect: 'always'
     });
-    if (error) return console.log('Error:', error);
-    if (paymentMethod) {
-      props.onSubmit(paymentMethod);
-    }
 
-    console.log('Paying....');
+    if (result.error) return console.log('Error:', result.error);
+    console.log('Result:', result);
   }
 
   return <form onSubmit={handleSubmit}>
@@ -35,7 +56,7 @@ const CardCheckout = (props) => {
         marginBottom: 10
       }}
     >
-      <CardElement />
+      {clientSecret && <PaymentElement />}
       <button
         style={{ alignSelf: 'left', padding: 10, marginTop: 10 }}
         type="submit"
